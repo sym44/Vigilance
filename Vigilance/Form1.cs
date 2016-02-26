@@ -34,15 +34,15 @@ namespace Vigilance
             {
                 standard = Convert.ToDouble(textBox2.Text);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 throw new Exception("输入错误:" + ex.Message);
             }
-            
+
             string relationStr = comboBox1.SelectedItem.ToString();
             string conditionStr = rangeStr + " " + relationStr + " " + standard.ToString();
 
-            if(rangeStr == null || textBox2 == null)
+            if (rangeStr == null || textBox2 == null)
             {
                 textBox1.Clear();
                 textBox2.Clear();
@@ -50,7 +50,7 @@ namespace Vigilance
             }
 
             //同时添加表和list
-            ThisAddIn.Register(selectedRange, Relation.Equalto, standard);         
+            ThisAddIn.Register(selectedRange, Relation.Equalto, standard);
             listBox1.Items.Add(conditionStr);
             NotifyChanges(selectedRange);
 
@@ -71,7 +71,7 @@ namespace Vigilance
             //MessageBox.Show(ThisAddIn.condList.Count.ToString());
             Condition cond = ThisAddIn.condList[indexSelect];
 
-            if(selected == null)
+            if (selected == null)
             {
                 throw new Exception("没有选中任何一个项.");
             }
@@ -95,35 +95,26 @@ namespace Vigilance
         /// <param name="e"></param>
         private void button3_Click(object sender, EventArgs e)
         {
-            selectedRange = theApp.Selection 
+            selectedRange = theApp.Selection
                 as Microsoft.Office.Interop.Excel.Range;
             textBox1.Text = selectedRange.AddressLocal;
         }
 
         private void NotifyChanges(Microsoft.Office.Interop.Excel.Range range)
         {
-            string A;
-            string B;
-            Microsoft.Office.Tools.Excel.NamedRange nRange;
-
-            if (range.AddressLocal.Contains(':'))
-            {
-                A = range.AddressLocal.Split(':')[0];
-                B = range.AddressLocal.Split(':')[1];
-                nRange = theApp.ActiveSheet.AddNamedRange(theApp.ActiveSheet.get_Range(A, B), "");
-            }
-            else
-            {
-                A = range.AddressLocal;
-                nRange = theApp.ActiveSheet.AddNamedRange(theApp.ActiveSheet.get_Range(A, null), range.AddressLocal);
-            }
+            Microsoft.Office.Interop.Excel.Worksheet nativeWorksheet =
+                Globals.ThisAddIn.Application.ActiveSheet;
             
-            nRange.Change += new Microsoft.Office.Interop.Excel.DocEvents_ChangeEventHandler(changesRange_Change);
+            nativeWorksheet.Change += new Microsoft.Office.Interop.Excel.DocEvents_ChangeEventHandler(changesRange_Change);
+            if (nativeWorksheet != null)
+            {
+                Microsoft.Office.Tools.Excel.Worksheet vstoWorksheet =
+                    Globals.Factory.GetVstoObject(nativeWorksheet);
+            }
         }
 
         void changesRange_Change(Microsoft.Office.Interop.Excel.Range Target)
         {
-            
             MessageBox.Show("Cell " + Target + " changed.");
         }
     }
